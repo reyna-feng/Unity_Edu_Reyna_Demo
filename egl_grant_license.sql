@@ -28,7 +28,7 @@ FROM(
             departmentName,areaOfStudy,position,
             requestCount,
             IF(NOT profile.license IS NULL, profile.license ,record.license) AS license,
-            grant_time,
+            grant_time,expire_time,
             IF(grantCount IS NULL, 0, grantCount) AS grantCount,
             IF(is_renew = true, true, false) AS is_renew,
             IF(NOT install_date IS NULL, install_date, request_time) AS install_time,
