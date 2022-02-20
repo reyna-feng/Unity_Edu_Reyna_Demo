@@ -1,4 +1,6 @@
 --KPI Report--
+CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.academic_kpi` AS 
+
 WITH startm AS(
 SELECT start_month,COUNT(DISTINCT license_record_id) AS num_start,COUNT(DISTINCT institutionName) AS num_institution_start
 FROM(
@@ -26,7 +28,10 @@ ORDER BY 1
 institution AS(
 SELECT *,
        AVG(running_balance) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_average,
-       AVG(running_institution_balance) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_institution_average
+       AVG(running_institution_balance) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_institution_average,
+       
+       SUM(running_balance) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_sum,
+       SUM(running_institution_balance) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_institution_sum
 FROM(
 SELECT *,
        ROW_NUMBER() OVER(ORDER BY report_month) AS rnk,
@@ -47,7 +52,9 @@ FULL JOIN endm ON startm.start_month = endm.end_month
 monthly_student AS(
 SELECT *,
        AVG(monthly_users) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_average,
-       AVG(monthly_institution) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_institution_average
+       AVG(monthly_institution) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_institution_average,
+       SUM(monthly_users) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_sum,
+       SUM(monthly_institution) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_institution_sum
 FROM(
 SELECT visit_month,monthly_users,monthly_institution,
        ROW_NUMBER() OVER(ORDER BY visit_month) AS rnk
@@ -58,7 +65,10 @@ ORDER BY 1) AS A
 
 
 SELECT A.visit_month ,A.monthly_users ,A.monthly_institution ,
+       IF(visit_month = DATE_TRUNC(CURRENT_DATE(),month),true,false) AS current_month,
        A.rolling_average AS monthly_rolling_students,A.rolling_institution_average AS monthly_rolling_schools,
+       
+       A.rolling_sum AS monthly_rolling_students_sum,A.rolling_institution_sum AS monthly_rolling_schools_sum,
        IF(NOT num_start IS NULL, num_start, 0) AS egl_license_start,
        IF(NOT num_end IS NULL, num_end, 0) AS egl_license_end,
        IF(NOT num_institution_start IS NULL, num_institution_start, 0) AS egl_school_start,
@@ -66,6 +76,10 @@ SELECT A.visit_month ,A.monthly_users ,A.monthly_institution ,
        IF(NOT running_balance IS NULL, running_balance,0) AS egl_license_balance,
        IF(NOT running_institution_balance IS NULL, running_institution_balance,0) AS egl_school_balance,
        IF(NOT B.rolling_average IS NULL, B.rolling_average,0) AS monthly_rolling_egl_license,
-       IF(NOT B.rolling_institution_average IS NULL, B.rolling_institution_average,0) AS monthly_rolling_egl_school
+       IF(NOT B.rolling_institution_average IS NULL, B.rolling_institution_average,0) AS monthly_rolling_egl_school,
+       IF(NOT B.rolling_sum IS NULL, B.rolling_sum,0) AS monthly_rolling_egl_license_sum,
+       IF(NOT B.rolling_institution_sum IS NULL, B.rolling_institution_sum,0) AS monthly_rolling_egl_school_sum,
+       3 AS activation_multiplier
 FROM monthly_student AS A
 LEFT JOIN institution AS B ON A.visit_month = B.report_month
+
