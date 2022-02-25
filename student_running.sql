@@ -17,12 +17,12 @@ SELECT *,
      DATE_TRUNC(session_start_date, week) AS session_start_week,
      TIMESTAMP_DIFF(session_start_time, LAG(session_start_time) OVER (PARTITION BY compliance_key ORDER BY session_start_time), hour) AS hrs_between_sessions
 FROM(
-SELECT compliance_key, sessionid, country_code_most_freq, 
+SELECT compliance_key, sessionid, country_code_most_freq, email,
        MIN(submit_date) AS session_start_date,
        MIN(submit_time) AS session_start_time,
        MAX(user_duration) / 3600 as session_user_time_hrs
 FROM(
-SELECT A.* EXCEPT(compliance_key),
+SELECT A.* EXCEPT(compliance_key),student.email AS email,
        COALESCE(A.compliance_key,user.compliance_key) AS compliance_key,
        user.country_code_most_freq
 FROM(
@@ -40,5 +40,5 @@ FROM(
     GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14) AS A
 JOIN user ON user.machineid = A.machineid AND user.license_hash = A.license_hash
 JOIN `unity-other-learn-prd.reynafeng.student_activation` student ON COALESCE(A.compliance_key,user.compliance_key) = student.compliance_key 
-GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15) AS A
-GROUP BY 1,2,3) AS B
+GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16) AS A
+GROUP BY 1,2,3,4) AS B
