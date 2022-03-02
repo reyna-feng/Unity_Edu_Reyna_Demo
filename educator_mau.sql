@@ -1,4 +1,4 @@
-CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.student_mau` AS
+CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.educator_mau` AS
 
 SELECT visit_date,visit_month,license,
        DAU,MAU,
@@ -17,7 +17,7 @@ SELECT DATE(login_date) AS visit_date,
        COUNT(DISTINCT editor_act.compliance_key) OVER(PARTITION BY DATE(login_date)) AS DAU,
        COUNT(DISTINCT editor_act.compliance_key) OVER(PARTITION BY DATE(login_date),license) AS DAU_License
 FROM `unity-other-liveplatform-prd.ontology.ckey_daily_login` AS editor_act
-JOIN `unity-other-learn-prd.reynafeng.student_activation` AS install ON editor_act.compliance_key = install.compliance_key AND install.activation_status=True AND DATE(login_date) BETWEEN DATE(install.licnese_grant_time) AND DATE(install.licnese_expiration_time)
+JOIN `unity-other-learn-prd.reynafeng.educator_activation` AS install ON editor_act.compliance_key = install.compliance_key
 GROUP BY 1,2,3,4,5) AS A
 GROUP BY 1,2,3,4,5,6,7,8,9
 ORDER BY 1 DESC, 2 DESC
