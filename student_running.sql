@@ -3,7 +3,6 @@ CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.student_running` AS
 WITH machine AS (
   SELECT machineid,license_hash,sessionid
   FROM `unity-other-liveplatform-prd.ontology.ml_session_mapping`
-  WHERE machine_count_per_session = 1
   GROUP BY 1,2,3
 ),
 

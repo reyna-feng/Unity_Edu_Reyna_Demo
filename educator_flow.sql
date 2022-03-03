@@ -6,10 +6,13 @@ FROM(
     SELECT nuo.compliance_key, first_template_type, first_template_chosen, 
            ROW_NUMBER() OVER (PARTITION BY nuo.compliance_key ORDER BY first_template_chosen) AS rnk,
            MIN(first_hub_login) OVER(PARTITION BY nuo.compliance_key) AS first_hub_login,
+           MIN(first_editor_download_end) OVER(PARTITION BY nuo.compliance_key) AS first_editor_download_end,
+           MIN(first_editor_install_end) OVER(PARTITION BY nuo.compliance_key) AS first_editor_install_end,
            MIN(first_editor_login) OVER(PARTITION BY nuo.compliance_key) AS first_editor_login,
            MIN(nuo.n_first_walkthrough_completed+nuo.n_new_walkthrough_completed) OVER(PARTITION BY nuo.compliance_key) AS wt_completed_count,
            MIN(webgl_post_first_ts) OVER(PARTITION BY nuo.compliance_key) AS webgl_post_first_ts
-    FROM `unity-other-liveplatform-prd.nuo.nuo_funnel_all_sessions` nuo) AS A
+    FROM `unity-other-liveplatform-prd.nuo.nuo_funnel_all_sessions` nuo
+    JOIN `unity-other-learn-prd.reynafeng.educator_activation` student ON nuo.compliance_key=student.compliance_key AND nuo.first_hub_login BETWEEN licnese_grant_time AND licnese_expiration_time) AS A
 WHERE rnk=1
 ),
 
@@ -18,6 +21,7 @@ hub_mg AS (
            MIN(mapping.first_login_date) AS first_hub_login,
            MIN(templates.template_chosen) AS first_template_chosen,
     FROM `unity-other-liveplatform-prd.ontology.ckey_ml_mapping` mapping
+    JOIN `unity-other-learn-prd.reynafeng.educator_activation` student ON mapping.compliance_key=student.compliance_key AND mapping.first_login_date BETWEEN DATE(licnese_grant_time) AND DATE(licnese_expiration_time)
     LEFT JOIN `unity-other-liveplatform-prd.nuo.nuo_templates` templates ON mapping.machineid=templates.machineid AND mapping.license_hash=templates.license_hash
     GROUP BY 1
 ),
@@ -25,6 +29,7 @@ hub_mg AS (
 editor AS (
     SELECT mapping.compliance_key,MIN(mapping.first_login_date) AS first_editor_login
     FROM `unity-other-liveplatform-prd.ontology.ckey_ml_mapping` mapping
+    JOIN `unity-other-learn-prd.reynafeng.educator_activation` student ON mapping.compliance_key=student.compliance_key AND mapping.first_login_date BETWEEN DATE(licnese_grant_time) AND DATE(licnese_expiration_time)
     GROUP BY 1
 ),
 
@@ -40,19 +45,11 @@ downloads AS (
     FROM `unity-other-learn-prd.reynafeng.asset_download`
     WHERE ep=True
     GROUP BY 1,2
-),
-
-license_activate AS (
-  SELECT compliance_key,MAX(body.ts) AS hub_license_activate
-  FROM `unity-ai-data-prd.hub_general.hub_general_licenseActivate_v1` 
-  WHERE submit_date IS NOT NULL
-  GROUP BY 1 
 )
 
 SELECT student.*,
        COALESCE(DATE(nuo.first_hub_login), hub_mg.first_hub_login) AS first_hub_login,
        COALESCE(DATE(nuo.first_editor_login), editor.first_editor_login) AS first_editor_login,
-       license_activate.hub_license_activate,
        nuo.wt_completed_count,
        nuo.webgl_post_first_ts,
        COALESCE(nuo.first_template_chosen, hub_mg.first_template_chosen) AS template_chosen,
@@ -64,4 +61,3 @@ LEFT JOIN hub_mg ON student.compliance_key = hub_mg.compliance_key
 LEFT JOIN editor ON student.compliance_key = editor.compliance_key
 LEFT JOIN purchased ON student.compliance_key = purchased.compliance_key
 LEFT JOIN downloads ON student.compliance_key = downloads.compliance_key
-LEFT JOIN license_activate ON license_activate.compliance_key = student.compliance_key AND DATE(license_activate.hub_license_activate) >= COALESCE(DATE(nuo.first_editor_login), editor.first_editor_login)

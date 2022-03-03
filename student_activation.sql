@@ -7,14 +7,14 @@ SELECT COALESCE(A.compliance_key,B.compliance_key) AS compliance_key,
        C.serialNumber,
        COALESCE(A.grant_time,C.validStart) AS grant_time,
        COALESCE(A.expiration_time,C.validEnd) AS expiration_time,
-       IF(NOT A.license IS NULL, A.license, 'Unknown') AS license
+       IF(NOT A.license IS NULL, A.license, IF(NOT C.serialCategorySlug IS NULL, C.serialCategorySlug, 'Unknown')) AS license
 FROM `unity-it-open-dataplatform-prd.dw_live_platform_analytics_extract.user_student_license_sheer` AS A
 FULL OUTER JOIN (
 SELECT DISTINCT compliance_key
 FROM`unity-ai-data-prd.genesis_studentLicense.genesis_studentLicense_callbackURL_v1`
 WHERE submit_date IS NOT NULL
 ) AS B ON B.compliance_key=A.compliance_key
-JOIN `unity-it-open-dataplatform-prd.dw_genesis_mq_cr.serial` C ON TO_BASE64(SHA256(CAST(C.ownerId AS STRING)))=COALESCE(A.compliance_key,B.compliance_key)
+LEFT JOIN `unity-it-open-dataplatform-prd.dw_genesis_mq_cr.serial` C ON TO_BASE64(SHA256(CAST(C.ownerId AS STRING)))=COALESCE(A.compliance_key,B.compliance_key)
 )
 
 

@@ -11,7 +11,7 @@ GROUP BY 1,2,3,4
 UNION ALL
 
 SELECT DATE(licnese_grant_time) AS day_date,account_type,license,
-       '2. Activate License on Hub' AS step,
+       '2. Activate License' AS step,
        SUM(IF(first_activation_ts IS NOT NULL, 1, 0)) AS user_count
 FROM `unity-other-learn-prd.reynafeng.student_flow`
 GROUP BY 1,2,3,4
