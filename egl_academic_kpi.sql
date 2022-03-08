@@ -7,7 +7,7 @@ SELECT TO_BASE64(SHA256(CAST(ownerId AS STRING))) AS user_id,
        DATE(ulfCreatedTime) AS install_date,
        COUNT(DISTINCT hwidUlf) AS installs
 FROM `unity-it-open-dataplatform-prd.dw_customer_insights.UserSerialActivations` 
-WHERE serialCategoryCode='EXTERNAL' AND countryOfResidence='JP' AND serialCategoryDescription='External Developer Version' AND serialCategoryName='External' AND isDeleted != true AND isTest != true
+WHERE serialCategoryCode='EXTERNAL' AND countryOfResidence='JP' AND serialCategoryDescription='External Developer Version' AND serialCategoryName='External' AND isTest != true
 GROUP BY 1,2,3),
 
 egl_grant_license AS(
@@ -85,7 +85,7 @@ FROM(
     SELECT install_time,SUM(installs) AS installs
     FROM(
       SELECT install_time, SUM(installs) AS installs
-      FROM `unity-other-learn-prd.reynafeng.egl_grant_license`
+      FROM egl_grant_license
       WHERE status='Approved' 
       GROUP BY 1
       UNION ALL
@@ -95,14 +95,17 @@ FROM(
     GROUP BY 1
   ) AS A
   FULL OUTER JOIN (
-    SELECT expire_time,MAX(running_installs) AS expires
+    SELECT expire_time,SUM(expires) AS expires
     FROM(
-      SELECT license, expire_time, running_installs,
-             DENSE_RANK() OVER(PARTITION BY license ORDER BY expire_time DESC) AS rnk
-      FROM `unity-other-learn-prd.reynafeng.egl_grant_license`
-      WHERE status='Approved') AS A
-    WHERE rnk=1
-    GROUP BY 1
+      SELECT license,expire_time,MAX(running_installs) AS expires
+      FROM(
+          SELECT license, expire_time, running_installs,
+                 DENSE_RANK() OVER(PARTITION BY license ORDER BY expire_time DESC) AS rnk
+          FROM egl_grant_license
+          WHERE status='Approved') AS A 
+          WHERE rnk=1
+          GROUP BY 1,2) AS B
+      GROUP BY 1
   ) AS B ON A.install_time=B.expire_time
 ) AS C
 GROUP BY 1
@@ -115,7 +118,7 @@ FROM(
 SELECT license_record_id ,license ,institutionName,
        MIN(DATE_TRUNC(request_time, month)) OVER(PARTITION BY license_record_id) AS start_month,
        MAX(DATE_TRUNC(expire_time, month)) OVER(PARTITION BY license_record_id) AS end_month
-FROM `unity-other-learn-prd.reynafeng.egl_grant_license`
+FROM egl_grant_license
 WHERE status='Approved') AS A
 GROUP BY 1
 ORDER BY 1
@@ -127,7 +130,7 @@ FROM(
 SELECT license_record_id ,license ,institutionName,
        MIN(DATE_TRUNC(request_time, month)) OVER(PARTITION BY license_record_id) AS start_month,
        MAX(DATE_TRUNC(expire_time, month)) OVER(PARTITION BY license_record_id) AS end_month
-FROM `unity-other-learn-prd.reynafeng.egl_grant_license`
+FROM egl_grant_license
 WHERE status='Approved') AS A
 GROUP BY 1
 ORDER BY 1
@@ -139,7 +142,7 @@ SELECT *,
        SUM(num_start) OVER(ORDER BY report_month) - SUM(num_end) OVER(ORDER BY report_month) AS running_balance,
        SUM(num_institution_start) OVER(ORDER BY report_month) - SUM(num_institution_end) OVER(ORDER BY report_month) AS running_institution_balance
 FROM(       
-SELECT IF(NOT start_month IS NULL, start_month, end_month) AS report_month,
+SELECT COALESCE(start_month,end_month,install_month) AS report_month,
        IF(NOT num_start IS NULL, num_start,0) AS num_start,
        IF(NOT num_end IS NULL, num_end,0) AS num_end,
        IF(NOT num_institution_start IS NULL, num_institution_start,0) AS num_institution_start,
@@ -149,7 +152,7 @@ SELECT IF(NOT start_month IS NULL, start_month, end_month) AS report_month,
        IF(NOT installs.running_installs IS NULL, installs.running_installs,0) AS running_installs
 FROM startm
 FULL JOIN endm ON startm.start_month = endm.end_month
-JOIN installs ON startm.start_month = installs.install_month OR (startm.start_month IS NULL AND endm.end_month = installs.install_month)
+FULL JOIN installs ON COALESCE(startm.start_month,endm.end_month) = installs.install_month
 ) AS A
 ORDER BY report_month
 ),
@@ -168,7 +171,12 @@ GROUP BY 1,2,3
 ORDER BY 1) AS A
 )
 
-
+SELECT *,
+       LAG(egl_license_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)) AS lag_egl_license_start,
+       LAG(egl_school_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)) AS lag_egl_school_start,
+       IF(egl_license_end=0, NULL, 1-egl_license_end/LAG(egl_license_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month))) AS renew_license,
+       IF(egl_school_end=0, NULL, 1-egl_school_end/LAG(egl_school_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month))) AS renew_school
+FROM(
 SELECT A.visit_month ,A.monthly_users ,A.monthly_institution ,
        IF(visit_month = DATE_TRUNC(CURRENT_DATE(),month),true,false) AS current_month,
        A.rolling_average AS monthly_rolling_students,A.rolling_institution_average AS monthly_rolling_schools,
@@ -185,4 +193,4 @@ SELECT A.visit_month ,A.monthly_users ,A.monthly_institution ,
        IF(NOT B.running_installs IS NULL, B.running_installs,0) AS monthly_rolling_seats_sum,
        3 AS activation_multiplier
 FROM monthly_student AS A
-LEFT JOIN institution AS B ON A.visit_month = B.report_month
+LEFT JOIN institution AS B ON A.visit_month = B.report_month) AS A
