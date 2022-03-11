@@ -1,3 +1,4 @@
+--Update Time: 3/9 4:13 PM--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_records` AS
 
 --One license_record_id , One grant_time 

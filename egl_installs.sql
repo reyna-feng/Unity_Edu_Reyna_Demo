@@ -1,3 +1,4 @@
+--Update Time: 3/9 4:11 PM--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_installs` AS
 
 SELECT TO_BASE64(SHA256(CAST(ownerId AS STRING))) AS user_id,

@@ -1,3 +1,4 @@
+--Update Time: 3/10 4:18 PM--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.student_activation` AS
 
 WITH license AS(
@@ -11,7 +12,7 @@ SELECT COALESCE(A.compliance_key,B.compliance_key) AS compliance_key,
 FROM `unity-it-open-dataplatform-prd.dw_live_platform_analytics_extract.user_student_license_sheer` AS A
 FULL OUTER JOIN (
 SELECT DISTINCT compliance_key
-FROM`unity-ai-data-prd.genesis_studentLicense.genesis_studentLicense_callbackURL_v1`
+FROM `unity-ai-data-prd.genesis_studentLicense.genesis_studentLicense_callbackURL_v1`
 WHERE submit_date IS NOT NULL
 ) AS B ON B.compliance_key=A.compliance_key
 LEFT JOIN `unity-it-open-dataplatform-prd.dw_genesis_mq_cr.serial` C ON TO_BASE64(SHA256(CAST(C.ownerId AS STRING)))=COALESCE(A.compliance_key,B.compliance_key)

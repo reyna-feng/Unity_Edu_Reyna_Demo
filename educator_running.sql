@@ -1,3 +1,4 @@
+--Update Time: 3/10 9:30 PM--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.educator_running` AS
 
 WITH machine AS (

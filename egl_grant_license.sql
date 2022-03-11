@@ -1,3 +1,4 @@
+--Update Time: 3/9 4:09 PM--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_grant_license` AS
 
 WITH profile AS (

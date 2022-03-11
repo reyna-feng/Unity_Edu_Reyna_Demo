@@ -1,3 +1,4 @@
+--Update Time: 3/9 4:15 PM--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_running` AS
 
 WITH install AS (

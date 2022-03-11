@@ -1,3 +1,4 @@
+--Update Time: 3/10 8:28 PM--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.student_session` AS
 
 --One compliance key one date one row
@@ -38,6 +39,5 @@ SELECT sessions.compliance_key,
        SUM(session_user_time_hrs) AS session_user_time_hrs
 FROM `unity-other-learn-prd.reynafeng.student_running` AS sessions
 JOIN session_cnt AS s_cnt ON sessions.compliance_key=s_cnt.compliance_key AND sessions.session_start_date=s_cnt.session_start_date
---WHERE sessions.compliance_key='2DpKyZyipC8gi9nBT0vnCXN5ryBMA5H6AA6ijFLqnzA='
 GROUP BY 1,2,3,4,5,6,7,8) AS A
 GROUP BY 1,2,3,4,5,6,7,8,9,10

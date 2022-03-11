@@ -1,10 +1,11 @@
-CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_session` AS
+--Update Time: 3/10 9:30 PM--
+CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.educator_session` AS
 
 --One compliance key one date one row
 WITH session_cnt AS(
       SELECT compliance_key,session_start_date,count(1) as sessions_count,
              DATE_DIFF(session_start_date, LAG(session_start_date) OVER(PARTITION BY compliance_key ORDER BY session_start_date), day) AS days_between_activedays
-      FROM `unity-other-learn-prd.reynafeng.egl_running`
+      FROM `unity-other-learn-prd.reynafeng.educator_running`
       WHERE hrs_between_sessions>=0.25 OR hrs_between_sessions IS NULL
       GROUP BY 1,2
 )
@@ -14,7 +15,8 @@ SELECT compliance_key,
        session_start_week,
        session_start_month,
        sessions_count,
-       email,
+       country_code_most_freq,
+       email,license,
        last_active_date,
        session_user_time_hrs,
        CAST(COUNT(DISTINCT compliance_key) OVER(PARTITION BY session_start_date) AS INT64) AS DAU,
@@ -32,11 +34,10 @@ SELECT sessions.compliance_key,
        DATE_TRUNC(sessions.session_start_date,month) AS session_start_month,
        sessions.session_start_week,
        s_cnt.sessions_count,
-       email,
+       country_code_most_freq,email,license,
        MAX(sessions.session_start_date) OVER(PARTITION BY sessions.compliance_key) AS last_active_date,
        SUM(session_user_time_hrs) AS session_user_time_hrs
-FROM `unity-other-learn-prd.reynafeng.egl_running` AS sessions
+FROM `unity-other-learn-prd.reynafeng.educator_running` AS sessions
 JOIN session_cnt AS s_cnt ON sessions.compliance_key=s_cnt.compliance_key AND sessions.session_start_date=s_cnt.session_start_date
---WHERE sessions.compliance_key='2DpKyZyipC8gi9nBT0vnCXN5ryBMA5H6AA6ijFLqnzA='
-GROUP BY 1,2,3,4,5,6) AS A
-GROUP BY 1,2,3,4,5,6,7,8
+GROUP BY 1,2,3,4,5,6,7,8) AS A
+GROUP BY 1,2,3,4,5,6,7,8,9,10

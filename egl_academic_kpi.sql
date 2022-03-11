@@ -1,4 +1,5 @@
---KPI Report--
+ --KPI Report--
+--Update Time: 3/9 3:42 PM--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_academic_kpi` AS 
 
 WITH JAPAN AS(
