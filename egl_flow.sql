@@ -62,7 +62,7 @@ downloads AS (
     GROUP BY 1,2
 )
 
-SELECT student.license,student.grant_time,student.user_id,
+SELECT student.license,student.grant_time,student.user_id,student.contactEmail,
        COALESCE(hub_mg.first_hub_login,DATE(nuo.first_hub_login)) AS first_hub_login,
        COALESCE(editor.first_editor_login,DATE(nuo.first_editor_login)) AS first_editor_login,
        nuo.first_editor_download_end,
@@ -79,4 +79,4 @@ LEFT JOIN hub_mg ON student.user_id = hub_mg.compliance_key
 LEFT JOIN editor ON student.user_id = editor.compliance_key
 LEFT JOIN purchased ON student.user_id = purchased.compliance_key
 LEFT JOIN downloads ON student.user_id = downloads.compliance_key
-GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12
+GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13
