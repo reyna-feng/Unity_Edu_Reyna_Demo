@@ -1,31 +1,59 @@
---Update Time: 3/22--
+--Update Time: 3/31--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.learn` AS
 
-SELECT compliance_key,submit_date,head.user_id,head.logged_in,head.session_id,body.content_id,body.content_title,body.content_type,
-       body.project_id,body.course_id,body.course_title,
-       IF(head.user_premium=True, "Premium", "Free") AS premium,
-       'Learn Start' AS learn_type
-FROM `unity-ai-data-prd.learn_learner.learn_learner_itemStart_v1` item_start
-WHERE submit_date IS NOT NULL
-UNION ALL
-SELECT compliance_key,submit_date,head.user_id,head.logged_in,head.session_id,body.content_id,body.content_title,body.content_type,
-       body.project_id,body.course_id,body.course_title,
-       IF(head.user_premium=True, "Premium", "Free") AS premium,
-       'Learn Complete' AS learn_type
-FROM `unity-ai-data-prd.learn_learner.learn_learner_itemComplete_v1` item_complete
-WHERE submit_date IS NOT NULL
-UNION ALL
-SELECT compliance_key,submit_date,head.user_id,head.logged_in,head.session_id,body.content_id,body.content_title,body.content_type,
-       body.project_id,body.course_id,body.course_title,
-       IF(head.user_premium=True, "Premium", "Free") AS premium,
-       'Learn Progress' AS learn_type
-FROM `unity-ai-data-prd.learn_learner.learn_learner_stepUpdate_v1` item_update
-WHERE submit_date IS NOT NULL
-UNION ALL
+WITH learn AS(
 SELECT compliance_key,submit_date,head.user_id,head.logged_in,head.session_id,
-       body.content_id,body.content_title,body.content_type,
-       body.project_id,body.course_id,body.course_title,
+       body.content_title,body.content_type,body.project_title,body.course_title,body.pathway_title,
+       body.content_level,body.content_industry,0 AS step_number,
+       IF(body.content_premium="true","Premium","Free") AS content_premium,
+       IF(head.user_premium=True, "Premium", "Free") AS user_premium,
+       'Learn Start' AS learn_type,
+       0 AS final_score, false AS passed, NULL AS file_name, body.content_topic
+FROM `unity-ai-data-prd.learn_learner.learn_learner_itemStart_v1` item_start
+WHERE submit_date IS NOT NULL AND compliance_key IN (SELECT DISTINCT compliance_key FROM `unity-other-learn-prd.reynafeng.academiclicense`)
+      AND body.item_start = true
+
+UNION ALL
+
+SELECT compliance_key,submit_date,head.user_id,head.logged_in,head.session_id,
+       body.content_title,body.content_type,body.project_title,body.course_title,body.pathway_title,
+       body.content_level,body.content_industry,0 AS step_number,
+       IF(body.content_premium="true","Premium","Free") AS content_premium,
        IF(head.user_premium=True, "Premium", "Free") AS premium,
-       'Learn Content Download' AS learn_type
+       'Learn Complete' AS learn_type,
+       CAST(IFNULL(body.final_score,'0') AS INT64) AS final_score,body.passed,NULL AS file_name,body.content_topic
+FROM `unity-ai-data-prd.learn_learner.learn_learner_itemComplete_v1` item_complete
+WHERE submit_date IS NOT NULL AND compliance_key IN (SELECT DISTINCT compliance_key FROM `unity-other-learn-prd.reynafeng.academiclicense`)
+      AND body.item_complete = true
+
+UNION ALL
+
+SELECT compliance_key,submit_date,head.user_id,head.logged_in,head.session_id,
+       body.content_title,body.content_type,body.project_title,body.course_title,body.pathway_title,
+       body.content_level,body.content_industry,body.step_number,
+       IF(body.content_premium="true","Premium","Free") AS content_premium,
+       IF(head.user_premium=True, "Premium", "Free") AS user_premium,
+       'Learn Progress' AS learn_type,
+       0 AS final_score, false AS passed,NULL AS file_name,body.content_topic
+FROM `unity-ai-data-prd.learn_learner.learn_learner_stepUpdate_v1` item_update
+WHERE submit_date IS NOT NULL AND compliance_key IN (SELECT DISTINCT compliance_key FROM `unity-other-learn-prd.reynafeng.academiclicense`)
+      AND body.step_complete = true
+      
+UNION ALL
+
+SELECT compliance_key,submit_date,head.user_id,head.logged_in,head.session_id,
+       body.content_title,body.content_type,body.project_title,body.course_title,NULL AS pathway_title,
+       body.content_level,body.content_industry,0 AS step_number,
+       IF(body.content_premium="true","Premium","Free") AS content_premium,
+       IF(head.user_premium=True, "Premium", "Free") AS user_premium,
+       'Learn Content Download' AS learn_type,
+       0 AS final_score, false AS passed,body.file_name,body.content_topic
 FROM `unity-ai-data-prd.learn_learner.learn_learner_fileDownload_v1` content_download
-WHERE submit_date IS NOT NULL
+WHERE submit_date IS NOT NULL AND compliance_key IN (SELECT DISTINCT compliance_key FROM `unity-other-learn-prd.reynafeng.academiclicense`)
+)
+
+
+SELECT A.*,
+       C.* EXCEPT (session_id,compliance_key,submit_date), C.submit_date AS learn_date
+FROM `unity-other-learn-prd.reynafeng.academiclicense` A
+LEFT JOIN learn C ON C.compliance_key=A.compliance_key AND C.submit_date BETWEEN A.grant_time AND A.expire_time

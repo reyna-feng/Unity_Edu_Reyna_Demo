@@ -1,4 +1,4 @@
---Update Time: 3/22--
+--Update Time: 4/1--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.academiclicense` AS
 
 WITH machine AS (
@@ -28,7 +28,7 @@ GROUP BY 1,2,3,4,5
 
 UNION ALL
 
-SELECT compliance_key,serialNumber AS license,email,SPLIT(email,'@')[OFFSET(0)] AS institution,'Student Plan' AS license_type,
+SELECT compliance_key,serialNumber AS license,email,SPLIT(email,'@')[safe_ordinal(2)] AS institution,'Student Plan' AS license_type,
        MIN(DATE(licnese_grant_time)) AS grant_time,
        MAX(DATE(licnese_expiration_time)) AS expire_time
 FROM `unity-other-learn-prd.reynafeng.student_activation`
@@ -36,7 +36,7 @@ GROUP BY 1,2,3,4,5
 
 UNION ALL
 
-SELECT compliance_key,serialNumber AS license,email,SPLIT(email,'@')[OFFSET(0)] AS institution,'Educator Plan' AS license_type,
+SELECT compliance_key,serialNumber AS license,email,SPLIT(email,'@')[safe_ordinal(2)] AS institution,'Educator Plan' AS license_type,
        MIN(DATE(licnese_grant_time)) AS grant_time,
        MAX(DATE(licnese_expiration_time)) AS expire_time
 FROM `unity-other-learn-prd.reynafeng.educator_activation`

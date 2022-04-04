@@ -1,4 +1,4 @@
---Update Time: 3/24--
+--Update Time: 3/29--
 CREATE OR REPLACE VIEW `unity-other-learn-prd.reynafeng.pageview_funnel` AS
 
 SELECT day,'Learn' AS page,SUM(ga_user_count) AS users
@@ -53,13 +53,6 @@ UNION ALL
 SELECT day,'EGL Select Institution' AS page,SUM(ga_user_count) AS users
 FROM `unity-other-learn-prd.reynafeng.gaweb_view`
 WHERE full_page_path LIKE '/education-grant-license%?page=institutionSelection%'
-GROUP BY 1,2
-
-UNION ALL
---EGL: Point of Contact--
-SELECT day,'EGL Point of Contact' AS page,SUM(ga_user_count) AS users
-FROM `unity-other-learn-prd.reynafeng.gaweb_view`
-WHERE full_page_path LIKE '/education-grant-license%?page=0%'
 GROUP BY 1,2
 
 UNION ALL
