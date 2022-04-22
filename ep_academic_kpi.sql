@@ -1,5 +1,5 @@
 --KPI Report--
---Update Time: 3/10 10:20 PM--
+--Update Time: 4/4 10:20 PM--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.ep_academic_kpi` AS 
 
 WITH installs AS(
@@ -16,13 +16,13 @@ FROM(
   FROM(
       SELECT DATE(first_activation_ts) AS install_time, COUNT(DISTINCT compliance_key) AS installs
       FROM `unity-other-learn-prd.reynafeng.educator_activation`
-      WHERE activation_status=True
+      WHERE activation_status=True AND DATE(first_activation_ts)>='2021-04-13'
       GROUP BY 1
   ) AS A
   FULL OUTER JOIN (
           SELECT DATE(licnese_expiration_time) AS expire_time, COUNT(DISTINCT compliance_key) AS expires
           FROM `unity-other-learn-prd.reynafeng.educator_activation`
-          WHERE activation_status=True
+          WHERE activation_status=True AND DATE(first_activation_ts)>='2021-04-13'
           GROUP BY 1
   ) AS B ON A.install_time=B.expire_time
 ) AS C

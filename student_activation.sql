@@ -1,8 +1,9 @@
---Update Time: 3/10 4:18 PM--
+--Update Time: 4/21--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.student_activation` AS
 
 WITH license AS(
 SELECT COALESCE(A.compliance_key,B.compliance_key) AS compliance_key,
+       B.userId AS user_id,
        COALESCE(A.created_time,C.createdTime) AS create_time,
        C.initialActivationDate,originSystem,C.serialCategorySlug,
        C.serialNumber,
@@ -11,9 +12,10 @@ SELECT COALESCE(A.compliance_key,B.compliance_key) AS compliance_key,
        IF(NOT A.license IS NULL, A.license, IF(NOT C.serialCategorySlug IS NULL, C.serialCategorySlug, 'Unknown')) AS license
 FROM `unity-it-open-dataplatform-prd.dw_live_platform_analytics_extract.user_student_license_sheer` AS A
 FULL OUTER JOIN (
-SELECT DISTINCT compliance_key
+SELECT DISTINCT compliance_key,body.userId
 FROM `unity-ai-data-prd.genesis_studentLicense.genesis_studentLicense_callbackURL_v1`
 WHERE submit_date IS NOT NULL
+GROUP BY 1,2
 ) AS B ON B.compliance_key=A.compliance_key
 LEFT JOIN `unity-it-open-dataplatform-prd.dw_genesis_mq_cr.serial` C ON TO_BASE64(SHA256(CAST(C.ownerId AS STRING)))=COALESCE(A.compliance_key,B.compliance_key)
 )
@@ -23,7 +25,7 @@ SELECT A.compliance_key,
        CASE WHEN A.compliance_key IN (SELECT DISTINCT compliance_key FROM `unity-it-open-dataplatform-prd.dw_live_platform_analytics_extract.user_student_license`) THEN 'Github'
             WHEN A.compliance_key IS NOT NULL THEN 'SheerID'
             ELSE 'No Licnese' END AS verification_type,
-       A.originSystem,A.serialCategorySlug,A.serialNumber,A.license,
+       A.originSystem,A.serialCategorySlug,A.serialNumber,A.license,A.user_id,
        D.created_date AS user_create_date,
        CASE WHEN DATE(D.created_date)=DATE(A.create_time) THEN 'New Account' ELSE 'Existing Account' END AS account_type,
        A.create_time AS licnese_create_time,
@@ -35,12 +37,12 @@ SELECT A.compliance_key,
        MAX(B.triggeredTime) AS last_activation_ts
 FROM license AS A
 LEFT OUTER JOIN (
-SELECT compliance_key, body.triggeredTime, body.status
+SELECT compliance_key, body.triggeredTime, body.status, body.userId
 FROM `unity-ai-data-prd.genesis_studentLicense.genesis_studentLicense_activation_v1` 
 WHERE submit_date IS NOT NULL AND body.status=True
-GROUP BY 1,2,3
-) AS B ON B.compliance_key=A.compliance_key AND B.triggeredTime BETWEEN A.grant_time AND A.expiration_time
+GROUP BY 1,2,3,4
+) AS B ON B.compliance_key=A.compliance_key AND B.triggeredTime BETWEEN A.grant_time AND A.expiration_time AND B.userId=A.user_id
 
 LEFT JOIN `unity-it-open-dataplatform-prd.dw_live_platform_analytics_extract.user_creation_date` AS D ON D.compliance_key=A.compliance_key
 LEFT JOIN `unity-ai-unity-insights-prd.source_genesis_mq_cr_restricted.user` AS E ON TO_BASE64(SHA256(CAST(E.id AS STRING)))=A.compliance_key
-GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13
+GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14

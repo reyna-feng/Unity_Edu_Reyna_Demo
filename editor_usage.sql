@@ -1,6 +1,13 @@
---Update Time: 3/30
+--Update Time: 4/7
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.editor_usage` AS 
-WITH editor AS(
+WITH license_user AS(
+    SELECT *
+    FROM `unity-other-learn-prd.reynafeng.academiclicense`
+    UNION ALL
+    SELECT *
+    FROM `unity-other-learn-prd.reynafeng.gamejam_license`
+),
+editor AS(
 --Start Editor--
 SELECT head.machineid, head.sessionid,
        compliance_key,submit_date,'Editor Start' AS editor_type,
@@ -101,5 +108,5 @@ GROUP BY 1,2,3,4,5,6,7,8,9,11
 )
 
 SELECT A.*,B.* EXCEPT (machineid,sessionid,compliance_key,submit_date),B.submit_date AS editor_date
-FROM `unity-other-learn-prd.reynafeng.academiclicense` A
+FROM license_user A
 LEFT JOIN editor B ON B.sessionid=A.sessionid AND B.machineid=A.machineid AND B.compliance_key=A.compliance_key AND B.submit_date BETWEEN A.grant_time AND A.expire_time

@@ -1,5 +1,4 @@
- --KPI Report--
---Update Time: 3/9 3:42 PM--
+--Update Time: 4/21--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_academic_kpi` AS 
 
 WITH JAPAN AS(
@@ -85,9 +84,9 @@ FROM(
   FROM(
     SELECT install_time,SUM(installs) AS installs
     FROM(
-      SELECT install_time, SUM(installs) AS installs
+      SELECT install_time, SUM(installs) AS installs,
       FROM egl_grant_license
-      WHERE status='Approved' 
+      WHERE status='Approved' AND is_install=True
       GROUP BY 1
       UNION ALL
       SELECT install_date AS install_time, SUM(installs) AS installs
@@ -103,7 +102,7 @@ FROM(
           SELECT license, expire_time, running_installs,
                  DENSE_RANK() OVER(PARTITION BY license ORDER BY expire_time DESC) AS rnk
           FROM egl_grant_license
-          WHERE status='Approved') AS A 
+          WHERE status='Approved' AND is_install=True) AS A 
           WHERE rnk=1
           GROUP BY 1,2) AS B
       GROUP BY 1
@@ -114,11 +113,11 @@ GROUP BY 1
 ),
 
 startm AS(
-SELECT start_month,COUNT(DISTINCT license_record_id) AS num_start,COUNT(DISTINCT institutionName) AS num_institution_start
+SELECT start_month,COUNT(DISTINCT license) AS num_start,COUNT(DISTINCT institutionName) AS num_institution_start
 FROM(
-SELECT license_record_id ,license ,institutionName,
-       MIN(DATE_TRUNC(request_time, month)) OVER(PARTITION BY license_record_id) AS start_month,
-       MAX(DATE_TRUNC(expire_time, month)) OVER(PARTITION BY license_record_id) AS end_month
+SELECT license ,institutionName,
+       MIN(DATE_TRUNC(request_time, month)) OVER(PARTITION BY license) AS start_month,
+       MAX(DATE_TRUNC(expire_time, month)) OVER(PARTITION BY license) AS end_month
 FROM egl_grant_license
 WHERE status='Approved') AS A
 GROUP BY 1
@@ -126,11 +125,11 @@ ORDER BY 1
 ),
 
 endm AS(
-SELECT end_month,COUNT(DISTINCT license_record_id) AS num_end,COUNT(DISTINCT institutionName) AS num_institution_end
+SELECT end_month,COUNT(DISTINCT license) AS num_end,COUNT(DISTINCT institutionName) AS num_institution_end
 FROM(
-SELECT license_record_id ,license ,institutionName,
-       MIN(DATE_TRUNC(request_time, month)) OVER(PARTITION BY license_record_id) AS start_month,
-       MAX(DATE_TRUNC(expire_time, month)) OVER(PARTITION BY license_record_id) AS end_month
+SELECT license ,institutionName,
+       MIN(DATE_TRUNC(request_time, month)) OVER(PARTITION BY license) AS start_month,
+       MAX(DATE_TRUNC(expire_time, month)) OVER(PARTITION BY license) AS end_month
 FROM egl_grant_license
 WHERE status='Approved') AS A
 GROUP BY 1
@@ -159,30 +158,44 @@ ORDER BY report_month
 ),
 
 monthly_student AS(
-SELECT *,
-       AVG(monthly_users) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_average,
-       AVG(monthly_institution) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_institution_average,
-       SUM(monthly_users) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_sum,
-       SUM(monthly_institution) OVER(ORDER BY rnk RANGE BETWEEN 11 PRECEDING AND CURRENT ROW) AS rolling_institution_sum
-FROM(
-SELECT visit_month,monthly_users,monthly_institution,
+SELECT visit_month,monthly_users,monthly_institution,monthly_seats,
        ROW_NUMBER() OVER(ORDER BY visit_month) AS rnk
 FROM `unity-other-learn-prd.reynafeng.egl_mau`
-GROUP BY 1,2,3
-ORDER BY 1) AS A
+GROUP BY 1,2,3,4
+ORDER BY 1
+),
+
+grant_license AS(
+SELECT DATE_TRUNC(grant_time, month) AS grant_month,SUM(grantCount) AS grantCount
+FROM `unity-other-learn-prd.reynafeng.egl_grant_license`
+WHERE is_grant=True AND grant_time IS NOT NULL
+GROUP BY 1
+ORDER BY 1 DESC
+),
+
+request AS(
+SELECT first_month,COUNT(DISTINCT institutionName) AS num_request
+FROM(
+SELECT license_record_id ,license ,institutionName,
+       MIN(DATE_TRUNC(request_time, month)) AS first_month
+FROM `unity-other-learn-prd.reynafeng.egl_grant_license`
+GROUP BY 1,2,3) AS A
+GROUP BY 1
+ORDER BY 1
 )
 
-SELECT *,
+
+SELECT A.*,
+       IF(NOT C.grantCount IS NULL, C.grantCount,0) AS grantCount,
+       IF(NOT D.num_request IS NULL, D.num_request,0) AS request_scool,
        LAG(egl_license_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)) AS lag_egl_license_start,
        LAG(egl_school_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)) AS lag_egl_school_start,
-       IF(egl_license_end=0, NULL, 1-egl_license_end/LAG(egl_license_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month))) AS renew_license,
-       IF(egl_school_end=0, NULL, 1-egl_school_end/LAG(egl_school_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month))) AS renew_school
+       IF(egl_license_end=0 OR LAG(egl_license_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month))=0, NULL, 1-egl_license_end/LAG(egl_license_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month))) AS renew_license,
+       IF(egl_school_end=0 OR LAG(egl_school_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month))=0, NULL, 1-egl_school_end/LAG(egl_school_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month))) AS renew_school
 FROM(
 SELECT A.visit_month ,A.monthly_users ,A.monthly_institution ,
        IF(visit_month = DATE_TRUNC(CURRENT_DATE(),month),true,false) AS current_month,
-       A.rolling_average AS monthly_rolling_students,A.rolling_institution_average AS monthly_rolling_schools,
-       
-       A.rolling_sum AS monthly_rolling_students_sum,A.rolling_institution_sum AS monthly_rolling_schools_sum,
+       A.monthly_seats AS monthly_rolling_seats,
        IF(NOT num_start IS NULL, num_start, 0) AS egl_license_start,
        IF(NOT num_end IS NULL, num_end, 0) AS egl_license_end,
        IF(NOT num_institution_start IS NULL, num_institution_start, 0) AS egl_school_start,
@@ -195,3 +208,5 @@ SELECT A.visit_month ,A.monthly_users ,A.monthly_institution ,
        3 AS activation_multiplier
 FROM monthly_student AS A
 LEFT JOIN institution AS B ON A.visit_month = B.report_month) AS A
+LEFT JOIN grant_license AS C ON C.grant_month = A.visit_month
+LEFT JOIN request AS D ON D.first_month = A.visit_month

@@ -1,14 +1,15 @@
---Update Time: 3/9 4:09 PM--
+--Update Time: 4/21--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_grant_license` AS
 
 WITH profile AS (
      SELECT request.license_record_id,record.license,
-            IF(NOT record.user_id IS NULL, record.user_id, install.user_id) AS user_id
+            IF(NOT record.user_id IS NULL, record.user_id, install.user_id) AS user_id,
+            IF(NOT record.real_user_id IS NULL, record.real_user_id, install.real_user_id) AS real_user_id
      FROM `unity-other-learn-prd.reynafeng.egl_requests` AS request
      LEFT JOIN `unity-other-learn-prd.reynafeng.egl_records` AS record ON record.license_record_id =request.license_record_id AND grant_time=request_time
      LEFT JOIN `unity-other-learn-prd.reynafeng.egl_installs` AS install ON install.license=record.license AND (install_date BETWEEN request_time AND lead_request_time)
      WHERE record.license IS NOT NULL AND IF(NOT record.user_id IS NULL, record.user_id, install.user_id) IS NOT NULL
-     GROUP BY 1,2,3
+     GROUP BY 1,2,3,4
 )
 
 SELECT * EXCEPT(requestCount,grantCount,is_renew),
@@ -34,6 +35,7 @@ FROM(
             IF(is_renew = true, true, false) AS is_renew,
             IF(NOT install_date IS NULL, install_date, request_time) AS install_time,
             IF(NOT profile.user_id IS NULL, profile.user_id ,record.user_id) AS user_id,
+            IF(NOT profile.real_user_id IS NULL, profile.real_user_id ,record.real_user_id) AS real_user_id,
             IF(NOT installs IS NULL,installs, 0) AS installs,
             ROW_NUMBER() OVER(PARTITION BY request.license_record_id,request_time ORDER BY request_time) AS rnk
      FROM `unity-other-learn-prd.reynafeng.egl_requests` AS request

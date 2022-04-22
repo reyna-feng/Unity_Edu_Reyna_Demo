@@ -1,4 +1,4 @@
---Update Time: 4/1--
+--Update Time: 4/21--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.academiclicense` AS
 
 WITH machine AS (
@@ -20,23 +20,23 @@ user AS (
 ),
 
 license_users AS (
-SELECT user_id AS compliance_key,license,contactEmail AS email,institutionName AS institution,'Education Grant License' AS license_type,
+SELECT user_id AS compliance_key,real_user_id AS user_id,license,contactEmail AS email,institutionName AS institution,'Education Grant License' AS license_type,
        MIN(grant_time) AS grant_time,
        MAX(expire_time) AS expire_time
 FROM `unity-other-learn-prd.reynafeng.egl_grant_license`
-GROUP BY 1,2,3,4,5
+GROUP BY 1,2,3,4,5,6
 
 UNION ALL
 
-SELECT compliance_key,serialNumber AS license,email,SPLIT(email,'@')[safe_ordinal(2)] AS institution,'Student Plan' AS license_type,
+SELECT compliance_key,user_id,serialNumber AS license,email,SPLIT(email,'@')[safe_ordinal(2)] AS institution,'Student Plan' AS license_type,
        MIN(DATE(licnese_grant_time)) AS grant_time,
        MAX(DATE(licnese_expiration_time)) AS expire_time
 FROM `unity-other-learn-prd.reynafeng.student_activation`
-GROUP BY 1,2,3,4,5
+GROUP BY 1,2,3,4,5,6
 
 UNION ALL
 
-SELECT compliance_key,serialNumber AS license,email,SPLIT(email,'@')[safe_ordinal(2)] AS institution,'Educator Plan' AS license_type,
+SELECT compliance_key,user_id,serialNumber AS license,email,SPLIT(email,'@')[safe_ordinal(2)] AS institution,'Educator Plan' AS license_type,
        MIN(DATE(licnese_grant_time)) AS grant_time,
        MAX(DATE(licnese_expiration_time)) AS expire_time
 FROM `unity-other-learn-prd.reynafeng.educator_activation`
@@ -44,7 +44,9 @@ GROUP BY 1,2,3,4,5
 )
 
 
-SELECT A.*,B.machineid,B.country_code_most_freq,C.sessionid
+SELECT A.*,B.machineid,B.country_code_most_freq,C.sessionid,D.fullName,
+       IF(expire_time<DATE(current_date()),'Expired','Active') AS if_expired
 FROM license_users A
 JOIN user B ON A.compliance_key = B.compliance_key 
 JOIN machine C ON C.machineid=B.machineid
+LEFT JOIN `unity-ai-unity-insights-prd.source_genesis_mq_cr_restricted.user` D ON TO_BASE64(SHA256(CAST(D.id AS STRING)))=A.compliance_key
