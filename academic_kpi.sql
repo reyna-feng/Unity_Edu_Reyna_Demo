@@ -1,4 +1,4 @@
---Update Time 4/4
+--Update Time 4/26
 
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.academic_kpi` AS
 SELECT *,
@@ -18,10 +18,13 @@ SELECT A.visit_month,A.current_month,A.monthly_rolling_seats_sum AS student_sp,
        0 AS school_edlab,
        0 AS paying_school,
        IF(NOT C.monthly_rolling_seats_sum IS NULL, C.monthly_rolling_seats_sum,0) AS educator_ep,
-       0 AS educator_community
+       0 AS educator_community,
+       IF(NOT D.total_valid IS NULL, D.total_valid,0) AS uaa_members,
+       IF(NOT D.uaa_revenue IS NULL, D.uaa_revenue,0) AS uaa_revenue
 FROM `unity-other-learn-prd.reynafeng.sp_academic_kpi` A
 LEFT JOIN `unity-other-learn-prd.reynafeng.egl_academic_kpi` B ON A.visit_month=B.visit_month 
-LEFT JOIN `unity-other-learn-prd.reynafeng.ep_academic_kpi` C ON A.visit_month=C.visit_month 
+LEFT JOIN `unity-other-learn-prd.reynafeng.ep_academic_kpi` C ON A.visit_month=C.visit_month
+LEFT JOIN `unity-other-learn-prd.reynafeng.opportunity_uaa` D ON A.visit_month=D.report_month
 WHERE A.visit_month>='2020-02-01'
 ORDER BY 1 ASC) AS A
-GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18
+GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
