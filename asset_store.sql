@@ -2,9 +2,10 @@
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.asset_store` AS
 
 WITH asset AS(
-  SELECT id,name,publisher_name
+  SELECT id,name,publisher_name,category_name
   FROM `unity-it-open-dataplatform-prd.dw_live_platform_analytics_extract.assetstore_asset_metadata`
   WHERE name IS NOT NULL
+  GROUP BY 1,2,3,4
 )
 SELECT *,
        SUM(amount_final_usd) OVER(PARTITION BY compliance_key) AS total_usd_user
