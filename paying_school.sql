@@ -1,11 +1,10 @@
---Update Time: 5/3
-CREATE OR REPLACE VIEW `unity-other-learn-prd.reynafeng.opportunity_uaa` AS
+--Update Time: 4/27
+CREATE OR REPLACE VIEW `unity-other-learn-prd.reynafeng.paying_school` AS
 
 WITH start_contract AS(
 SELECT DATE_TRUNC(opportunity_start_date,MONTH) AS start_month,
        COUNT(DISTINCT account_name) AS num_start
 FROM `unity-other-learn-prd.reynafeng.salesforce_opportunity`
-WHERE SBQQ__ProductName__c LIKE '%Academic Alliance%' AND SBQQ__ProductFamily__c='Education'
 GROUP BY 1
 ORDER BY 1
 ),
@@ -14,7 +13,6 @@ end_contract AS(
 SELECT DATE_TRUNC(opportunity_end_date,MONTH) AS end_month,
        COUNT(DISTINCT account_name) AS num_end
 FROM `unity-other-learn-prd.reynafeng.salesforce_opportunity`
-WHERE SBQQ__ProductName__c LIKE '%Academic Alliance%' AND SBQQ__ProductFamily__c='Education'
 GROUP BY 1
 ORDER BY 1
 ),
@@ -31,9 +29,7 @@ ORDER BY 1
 )
 
 SELECT COALESCE(DATE_TRUNC(A.closedate,MONTH),B.report_month) AS report_month,
-       B.num_start,B.num_end,B.total_valid,
-       SUM(A.ACV_USD) AS uaa_revenue,
+       B.num_start,B.num_end,B.total_valid
 FROM `unity-other-learn-prd.reynafeng.salesforce_opportunity` A
 FULL JOIN total B ON DATE_TRUNC(A.closedate,MONTH)=B.report_month
-WHERE SBQQ__ProductName__c LIKE '%Academic Alliance%' AND SBQQ__ProductFamily__c='Education'
 GROUP BY 1,2,3,4

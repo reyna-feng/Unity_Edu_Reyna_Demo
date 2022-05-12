@@ -1,4 +1,4 @@
---Update Time: 4/8--
+--Update Time: 5/2--
 CREATE OR REPLACE VIEW `unity-other-learn-prd.reynafeng.table_monitor` AS
 
 SELECT DATE(ulfCreatedTime) AS table_date,
@@ -149,3 +149,28 @@ FROM `unity-ai-data-prd.genesis_studentLicense.genesis_studentLicense_activation
 WHERE submit_date IS NOT NULL
 GROUP BY 1,2
 
+UNION ALL
+
+SELECT DATE(submit_date) AS table_date,
+       'unity-ai-data-prd.cloud_build_raw.cloud_build_buildAttempt_v1' AS table,
+       COUNT(DISTINCT compliance_key) AS datapoints
+FROM `unity-ai-data-prd.cloud_build_raw.cloud_build_buildAttempt_v1`
+WHERE submit_date IS NOT NULL AND compliance_key IN (SELECT DISTINCT compliance_key FROM `unity-other-learn-prd.reynafeng.academiclicense`)
+GROUP BY 1,2
+
+UNION ALL
+
+SELECT DATE(submit_date) AS table_date,
+       'unity-ai-data-prd.cloud_build_raw.cloud_build_buildDeploy_v1' AS table,
+       COUNT(DISTINCT compliance_key) AS datapoints
+FROM `unity-ai-data-prd.cloud_build_raw.cloud_build_buildDeploy_v1`
+WHERE submit_date IS NOT NULL AND compliance_key IN (SELECT DISTINCT compliance_key FROM `unity-other-learn-prd.reynafeng.academiclicense`)
+GROUP BY 1,2
+
+UNION ALL
+
+SELECT DATE(ts) AS table_date,
+       'unity-other-learn-prd.reynafeng.cloud_collaborate' AS table,
+       COUNT(DISTINCT compliance_key) AS datapoints
+FROM `unity-other-learn-prd.reynafeng.cloud_collaborate`
+GROUP BY 1,2
