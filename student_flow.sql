@@ -1,4 +1,4 @@
---Update Time: 3/10 9:11 PM--
+--Update Time: 5/17--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.student_flow` AS
 
 WITH nuo AS (
@@ -52,14 +52,14 @@ editor AS (
 purchased AS (
     SELECT compliance_key,total_usd_user
     FROM `unity-other-learn-prd.reynafeng.asset_store`
-    WHERE sp=True
+    WHERE license_type='Student Plan'
     GROUP BY 1,2
 ),
     
 downloads AS (
     SELECT compliance_key,total_downloads
     FROM `unity-other-learn-prd.reynafeng.asset_download`
-    WHERE sp=True
+    WHERE license_type='Student Plan'
     GROUP BY 1,2
 )
 

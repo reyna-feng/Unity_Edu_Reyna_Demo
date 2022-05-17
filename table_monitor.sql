@@ -1,10 +1,19 @@
---Update Time: 5/2--
+--Update Time: 5/17--
 CREATE OR REPLACE VIEW `unity-other-learn-prd.reynafeng.table_monitor` AS
 
 SELECT DATE(ulfCreatedTime) AS table_date,
        'unity-it-open-dataplatform-prd.dw_customer_insights.UserSerialActivations' AS table,
        COUNT(DISTINCT hwidUlf) AS datapoints
 FROM `unity-it-open-dataplatform-prd.dw_customer_insights.UserSerialActivations` 
+WHERE serialCategoryName='Edu Subscription Multi-install' AND isTest != true 
+GROUP BY 1,2
+
+UNION ALL
+
+SELECT DATE(ulfCreatedTime) AS table_date,
+       'unity-ai-unity-insights-prd.ai_feature_catalog.user_serial_activations' AS table,
+       COUNT(DISTINCT hwidUlf) AS datapoints
+FROM `unity-ai-unity-insights-prd.ai_feature_catalog.user_serial_activations`
 WHERE serialCategoryName='Edu Subscription Multi-install' AND isTest != true 
 GROUP BY 1,2
 
@@ -118,6 +127,14 @@ GROUP BY 1,2
 
 UNION ALL
 
+SELECT DATE(submit_date) AS table_date,
+       'unity-ai-data-prd.genesis_educatorLicense.genesis_educatorLicense_callbackURL_v1' AS table,
+       COUNT(DISTINCT compliance_key) AS datapoints
+FROM `unity-ai-data-prd.genesis_educatorLicense.genesis_educatorLicense_callbackURL_v1`
+GROUP BY 1,2
+
+UNION ALL
+
 SELECT DATE(learn_date) AS table_date,
        'unity-other-learn-prd.reynafeng.learn' AS table,
        COUNT(DISTINCT compliance_key) AS datapoints
@@ -138,6 +155,14 @@ SELECT DATE(grant_time) AS table_date,
        'unity-it-open-dataplatform-prd.dw_live_platform_analytics_extract.user_student_license_sheer' AS table,
        COUNT(DISTINCT compliance_key) AS datapoints
 FROM `unity-it-open-dataplatform-prd.dw_live_platform_analytics_extract.user_student_license_sheer`
+GROUP BY 1,2
+
+UNION ALL
+
+SELECT DATE(submit_date) AS table_date,
+       'unity-ai-data-prd.genesis_studentLicense.genesis_studentLicense_callbackURL_v1' AS table,
+       COUNT(DISTINCT compliance_key) AS datapoints
+FROM `unity-ai-data-prd.genesis_studentLicense.genesis_studentLicense_callbackURL_v1`
 GROUP BY 1,2
 
 UNION ALL
@@ -174,3 +199,4 @@ SELECT DATE(ts) AS table_date,
        COUNT(DISTINCT compliance_key) AS datapoints
 FROM `unity-other-learn-prd.reynafeng.cloud_collaborate`
 GROUP BY 1,2
+

@@ -1,12 +1,16 @@
---Update Time: 5/2
+--Update Time: 5/17
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.asset_import` AS
 
 WITH asset AS(
 SELECT * EXCEPT(rnk)
 FROM(
-  SELECT name,publisher_name,category_name,price,ROW_NUMBER() OVER(PARTITION BY name ORDER BY created_at) AS rnk
-  FROM `unity-it-open-dataplatform-prd.dw_live_platform_analytics_extract.assetstore_asset_metadata`
-  WHERE name IS NOT NULL
+  SELECT A.id,A.name,A.publisher_name,A.created_at,
+         IF(NOT B.category_name IS NULL, B.category_name,CAST(A.category_id AS STRING)) AS category_name,
+         A.price,ROW_NUMBER() OVER(PARTITION BY A.name ORDER BY A.created_at) AS rnk
+  FROM `unity-ai-unity-insights-prd.ai_live_platform_analytics_extract.assetstore_asset_metadata` A
+  LEFT JOIN `unity-it-open-dataplatform-prd.dw_live_platform_analytics_extract.assetstore_asset_metadata` B ON A.id=B.id AND A.publisher_id=B.publisher_id
+  WHERE A.name IS NOT NULL
+  GROUP BY 1,2,3,4,5,6
 ) AS A
 WHERE rnk=1
 ),

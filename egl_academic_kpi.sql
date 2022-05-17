@@ -1,4 +1,4 @@
---Update Time: 4/21--
+--Update Time: 5/17--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_academic_kpi` AS 
 
 WITH JAPAN AS(
@@ -6,7 +6,7 @@ SELECT TO_BASE64(SHA256(CAST(ownerId AS STRING))) AS user_id,
        serialNumber AS license,
        DATE(ulfCreatedTime) AS install_date,
        COUNT(DISTINCT hwidUlf) AS installs
-FROM `unity-it-open-dataplatform-prd.dw_customer_insights.UserSerialActivations` 
+FROM `unity-ai-unity-insights-prd.ai_feature_catalog.user_serial_activations`
 WHERE serialCategoryCode='EXTERNAL' AND countryOfResidence='JP' AND serialCategoryDescription='External Developer Version' AND serialCategoryName='External' AND isTest != true
 GROUP BY 1,2,3),
 
@@ -21,7 +21,7 @@ WITH profile AS (
             serialNumber AS license,
             DATE(ulfCreatedTime) AS install_date,
             COUNT(DISTINCT hwidUlf) AS installs
-     FROM `unity-it-open-dataplatform-prd.dw_customer_insights.UserSerialActivations` 
+     FROM `unity-ai-unity-insights-prd.ai_feature_catalog.user_serial_activations`
      WHERE serialCategoryName='Edu Subscription Multi-install' AND isTest != true
      GROUP BY 1,2,3
      ) AS install ON install.license=record.license AND (install_date BETWEEN request_time AND lead_request_time)
@@ -61,7 +61,7 @@ FROM(
             serialNumber AS license,
             DATE(ulfCreatedTime) AS install_date,
             COUNT(DISTINCT hwidUlf) AS installs
-     FROM `unity-it-open-dataplatform-prd.dw_customer_insights.UserSerialActivations` 
+     FROM `unity-ai-unity-insights-prd.ai_feature_catalog.user_serial_activations`
      WHERE serialCategoryName='Edu Subscription Multi-install' AND isTest != true
      GROUP BY 1,2,3
      ) AS install ON install.license=record.license AND (install_date >= request_time AND install_date < lead_request_time)

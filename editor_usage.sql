@@ -1,7 +1,7 @@
---Update Time: 4/7
+--Update Time: 5/17
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.editor_usage` AS 
 WITH license_user AS(
-    SELECT *
+    SELECT * EXCEPT(fullName,if_expired,user_id)
     FROM `unity-other-learn-prd.reynafeng.academiclicense`
     UNION ALL
     SELECT *

@@ -1,10 +1,10 @@
---Update Time: 3/9 4:15 PM--
+--Update Time: 5/17--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_running` AS
 
 WITH install AS (
     SELECT TO_BASE64(SHA256(CAST(install.ownerId AS string))) AS user_id,install.serialNumber AS license,
            request.institutionName,E.email
-    FROM `unity-it-open-dataplatform-prd.dw_customer_insights.UserSerialActivations`AS install
+    FROM `unity-ai-unity-insights-prd.ai_feature_catalog.user_serial_activations` AS install
     JOIN `unity-other-learn-prd.reynafeng.egl_records` AS record ON record.license=install.serialNumber
     JOIN `unity-other-learn-prd.reynafeng.egl_requests` AS request ON record.license_record_id=request.license_record_id
     LEFT JOIN `unity-ai-unity-insights-prd.source_genesis_mq_cr_restricted.user` AS E ON E.id=install.ownerId

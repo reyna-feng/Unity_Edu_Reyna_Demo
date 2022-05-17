@@ -1,4 +1,4 @@
---Update Time: 3/10 8:36 PM--
+--Update Time: 5/17--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_flow` AS
 
 WITH nuo AS (
@@ -51,14 +51,14 @@ editor AS (
 purchased AS (
     SELECT compliance_key,total_usd_user
     FROM `unity-other-learn-prd.reynafeng.asset_store`
-    WHERE egl=True
+    WHERE license_type='Education Grant License'
     GROUP BY 1,2
 ),
     
 downloads AS (
     SELECT compliance_key,total_downloads
     FROM `unity-other-learn-prd.reynafeng.asset_download`
-    WHERE egl=True
+    WHERE license_type='Education Grant License'
     GROUP BY 1,2
 )
 

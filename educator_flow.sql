@@ -1,4 +1,4 @@
---Update Time: 3/10 9:40 PM--
+--Update Time: 5/17--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.educator_flow` AS
 
 WITH nuo AS (
@@ -51,14 +51,14 @@ editor AS (
 purchased AS (
     SELECT compliance_key,total_usd_user
     FROM `unity-other-learn-prd.reynafeng.asset_store`
-    WHERE ep=True
+    WHERE license_type='Educator Plan'
     GROUP BY 1,2
 ),
     
 downloads AS (
     SELECT compliance_key,total_downloads
     FROM `unity-other-learn-prd.reynafeng.asset_download`
-    WHERE ep=True
+    WHERE license_type='Educator Plan'
     GROUP BY 1,2
 )
 
@@ -67,7 +67,7 @@ SELECT student.*,
        COALESCE(editor.first_editor_login,DATE(nuo.first_editor_login)) AS first_editor_login,
        nuo.wt_completed_count,
        nuo.webgl_post_first_ts,
-       COALESCE(nuo.first_template_chosen, hub_mg.first_template_chosen) AS template_chosen,
+       COALESCE(hub_mg.first_template_chosen,nuo.first_template_chosen) AS template_chosen,
        purchased.total_usd_user,
        downloads.total_downloads
 FROM `unity-other-learn-prd.reynafeng.educator_activation` student
