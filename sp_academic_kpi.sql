@@ -1,5 +1,5 @@
 --KPI Report--
---Update Time: 3/10 10:20 PM--
+--Update Time: 5/23
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.sp_academic_kpi` AS 
 
 WITH installs AS(
@@ -85,6 +85,7 @@ ORDER BY 1) AS A
 )
 
 SELECT *,
+       LAG(num_install) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)) AS lag_num_install,
        LAG(student_license_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)) AS lag_student_license_start,
        IF(student_license_end=0, NULL, 1-student_license_end/LAG(student_license_start) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month))) AS renew_license
 FROM(

@@ -1,4 +1,4 @@
---Update Time: 5/3--
+--Update Time: 6/7--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.salesforce_opportunity` AS
 
 SELECT CASE WHEN a.`StageName` IN ('Closed Won','Closed Won/Online Sale') THEN 'Won'
@@ -75,6 +75,6 @@ LEFT JOIN `unity-ai-unity-insights-prd.salesops_insights.Products` p ON c.SBQQ__
 LEFT JOIN `unity-ai-unity-insights-prd.source_sfdc2_cr_restricted.product2` E ON e.Name = SBQQ__ProductName__c
 WHERE b.SBQQ__Primary__c = true
       --AND d.qtr >= '2020-Q1'
-      AND a.`StageName` IN ('Closed Won','Closed Won/Online Sale') 
+      --AND a.`StageName` IN ('Closed Won','Closed Won/Online Sale') 
       --AND c.`End_Date__c` >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH) 
       AND (a.`Internal_Segment__c` LIKE 'Education' OR c.SBQQ__ProductFamily__c LIKE 'Education' OR usr.name LIKE 'Israel Macias')

@@ -1,8 +1,9 @@
---Update Time: 4/21--
+--Update Time: 6/8--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_records` AS
 
 --One license_record_id , One grant_time 
 SELECT *,
+       IF(days_diff>0,DATE_DIFF(grant_time,lag_expire_time,DAY),NULL) AS days_renew,
        IF(days_diff>0,true,false) AS is_renew,
        IF(NOT LEAD(grant_time) OVER(PARTITION BY license ORDER BY grant_time) IS NULL,LEAD(grant_time) OVER(PARTITION BY license ORDER BY grant_time),'2300-01-01') AS lead_grant_time,
        installation_limit - IF (NOT LAG(installation_limit) OVER(PARTITION BY license ORDER BY grant_time) IS NULL, LAG(installation_limit) OVER(PARTITION BY license ORDER BY grant_time), 0) AS grantCount
@@ -13,6 +14,7 @@ SELECT license_record_id ,license ,
        MAX(installation_limit) AS installation_limit ,
        user_id , real_user_id,
        MAX(expire) AS expire_time ,
+       MAX(lag_expire) AS lag_expire_time ,
        SUM(days_diff) AS days_diff  
 FROM(
 SELECT *,

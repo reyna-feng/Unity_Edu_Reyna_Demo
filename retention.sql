@@ -1,4 +1,4 @@
---Update Time: 4/12
+--Update Time: 5/23
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.retention` AS
 
 WITH user AS (
@@ -35,9 +35,9 @@ FROM(
     FULL OUTER JOIN user ON mapping.machineid=user.machineid AND mapping.license_hash=user.license_hash
     WHERE mapping.submit_date IS NOT NULL
     GROUP BY 1,2,3) AS A
-LEFT JOIN `unity-other-learn-prd.reynafeng.student_activation` B ON A.compliance_key=B.compliance_key AND A.submit_date BETWEEN LEAST(DATE(B.licnese_create_time),DATE(B.licnese_grant_time)) AND DATE(B.licnese_expiration_time)
+LEFT JOIN `unity-other-learn-prd.reynafeng.student_activation` B ON A.compliance_key=B.compliance_key AND A.submit_date BETWEEN DATE(B.licnese_grant_time) AND DATE(B.licnese_expiration_time)
 LEFT JOIN `unity-other-learn-prd.reynafeng.egl_grant_license` C ON A.compliance_key=C.user_id AND A.submit_date BETWEEN C.grant_time AND C.expire_time
-LEFT JOIN `unity-other-learn-prd.reynafeng.educator_activation` E ON A.compliance_key=E.compliance_key AND A.submit_date BETWEEN LEAST(DATE(E.licnese_create_time),DATE(E.licnese_grant_time)) AND DATE(E.licnese_expiration_time)
+LEFT JOIN `unity-other-learn-prd.reynafeng.educator_activation` E ON A.compliance_key=E.compliance_key AND A.submit_date BETWEEN DATE(E.licnese_grant_time) AND DATE(E.licnese_expiration_time)
 
 LEFT JOIN `unity-ai-unity-insights-prd.source_genesis_mq_cr_restricted.user` AS D ON TO_BASE64(SHA256(CAST(D.id AS STRING)))=A.compliance_key
 WHERE B.compliance_key IS NOT NULL OR C.user_id IS NOT NULL OR E.compliance_key IS NOT NULL

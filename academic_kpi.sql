@@ -1,4 +1,4 @@
---Update Time: 5/9
+--Update Time: 5/23
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.academic_kpi` AS
 WITH asset_store AS (
   SELECT DATE_TRUNC(submit_date,MONTH) AS purchase_month,
@@ -15,14 +15,7 @@ SELECT *,
        IF(NOT LAG(total_school) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)) IS NULL, LAG(total_school) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)),total_school) AS lag_year_total_school,
        IF(NOT LAG(total_educator) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)) IS NULL, LAG(total_educator) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)), total_educator) AS lag_year_total_educator,
        IF(NOT LAG(total_mau) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)) IS NULL, LAG(total_mau) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)), total_mau) AS lag_year_total_mau,
-       IF(NOT LAG(net_asset_store) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)) IS NULL, LAG(net_asset_store) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)), net_asset_store) AS lag_year_net_asset_store,
-       --previous month
-       IF(NOT LAG(total_students) OVER(ORDER BY visit_month) IS NULL, LAG(total_students) OVER(ORDER BY visit_month), total_students) AS lag_month_total_students,
-       IF(NOT LAG(total_school) OVER(ORDER BY visit_month) IS NULL, LAG(total_school) OVER(ORDER BY visit_month),total_school) AS lag_month_total_school,
-       IF(NOT LAG(total_educator) OVER(ORDER BY visit_month) IS NULL, LAG(total_educator) OVER(ORDER BY visit_month), total_educator) AS lag_month_total_educator,
-       IF(NOT LAG(total_mau) OVER(ORDER BY visit_month) IS NULL, LAG(total_mau) OVER(ORDER BY visit_month), total_mau) AS lag_month_total_mau,
-       IF(NOT LAG(net_asset_store) OVER(ORDER BY visit_month) IS NULL, LAG(net_asset_store) OVER(ORDER BY visit_month), total_mau) AS lag_month_net_asset_store
-
+       IF(NOT LAG(net_asset_store) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)) IS NULL, LAG(net_asset_store) OVER(PARTITION BY EXTRACT(MONTH FROM visit_month) ORDER BY EXTRACT(YEAR FROM visit_month)), net_asset_store) AS lag_year_net_asset_store
 FROM(
 SELECT * EXCEPT(educator_mau,student_mau),
        student_sp+student_egl+student_edlab AS total_students,
@@ -61,4 +54,3 @@ ORDER BY 1 ASC) AS A
 GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
 ) A
 ORDER BY visit_month
-

@@ -1,4 +1,4 @@
---Update Time: 4/21--
+--Update Time: 6/8--
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_grant_license` AS
 
 WITH profile AS (
@@ -33,6 +33,7 @@ FROM(
             grant_time,expire_time,
             IF(grantCount IS NULL, 0, grantCount) AS grantCount,
             IF(is_renew = true, true, false) AS is_renew,
+            record.days_renew,
             IF(NOT install_date IS NULL, install_date, request_time) AS install_time,
             IF(NOT profile.user_id IS NULL, profile.user_id ,record.user_id) AS user_id,
             IF(NOT profile.real_user_id IS NULL, profile.real_user_id ,record.real_user_id) AS real_user_id,
