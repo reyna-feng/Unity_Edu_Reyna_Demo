@@ -1,4 +1,4 @@
---Update Time: 4/21--
+--Update Time: 7/18
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.cloud_build_attempt` AS
 
 SELECT body.build_target_platform,body.scm_type,body.artifact_size,body.build_status, body.ts,
@@ -11,4 +11,4 @@ FROM `unity-ai-data-prd.cloud_build_raw.cloud_build_buildAttempt_v1` A
 JOIN `unity-other-learn-prd.reynafeng.academiclicense` B ON B.user_id = A.body.user_id
       AND DATE(body.ts) BETWEEN grant_time AND expire_time
 WHERE submit_date IS NOT NULL
-GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22
+GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25

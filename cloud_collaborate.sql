@@ -1,4 +1,4 @@
---Update Time: 4/22--
+--Update Time: 7/12
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.cloud_collaborate` AS
 
 SELECT A.compliance_key,
@@ -33,7 +33,7 @@ FROM `unity-ai-data-prd.cloud_collaborate_raw.cloud_collaborate_publishFailure_v
 JOIN `unity-other-learn-prd.reynafeng.academiclicense` B ON B.user_id = COALESCE(A.head.userid,A.body.user_id)
       AND DATE(body.ts) BETWEEN grant_time AND expire_time
 WHERE submit_date IS NOT NULL
-GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19
+GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22
 
 UNION ALL
 
@@ -51,7 +51,7 @@ FROM `unity-ai-data-prd.cloud_collaborate_raw.cloud_collaborate_publish_v1` A
 JOIN `unity-other-learn-prd.reynafeng.academiclicense` B ON B.user_id = COALESCE(A.head.userid,A.body.user_id)
       AND DATE(body.ts) BETWEEN grant_time AND expire_time
 WHERE submit_date IS NOT NULL
-GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19
+GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22
 
 UNION ALL
 
@@ -69,4 +69,4 @@ FROM `unity-ai-data-prd.cloud_collaborate_raw.cloud_collaborate_updateBuildState
 JOIN `unity-other-learn-prd.reynafeng.academiclicense` B ON B.user_id = COALESCE(A.head.userid,A.body.user_id)
       AND DATE(body.ts) BETWEEN grant_time AND expire_time
 WHERE submit_date IS NOT NULL
-GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19
+GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22

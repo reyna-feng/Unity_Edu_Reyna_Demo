@@ -1,4 +1,4 @@
---Update Time: 6/7--
+--Update Time: 7/15
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.salesforce_opportunity` AS
 
 SELECT CASE WHEN a.`StageName` IN ('Closed Won','Closed Won/Online Sale') THEN 'Won'
@@ -12,7 +12,8 @@ SELECT CASE WHEN a.`StageName` IN ('Closed Won','Closed Won/Online Sale') THEN '
        c.SBQQ__NetTotal__c/cur.ConversionRate AS Net_Total_USD,a.Amount AS TCV,
        c.SBQQ__TotalDiscountAmount__c/cur.ConversionRate AS Total_Discount_USD,
        (c.SBQQ__NetTotal__c + c.SBQQ__TotalDiscountAmount__c)/cur.ConversionRate AS Total_no_Discount_USD,
-       a.`ForecastCategoryName`,a.`StageName`,c.Line_Type_Sales__c AS line_type,a.`Region__c` AS region,  
+       a.`ForecastCategoryName`,a.`StageName`,c.Line_Type_Sales__c AS line_type,a.`Region__c` AS region,
+       acct.BillingCountry AS country,
        a.Sub_Region__c,a.`Internal_Segment__c` AS internal_segment,a.Internal_Sub_Segment__c AS internal_subsegment,
        CASE WHEN a.`Internal_Segment__c` = 'Education' THEN 'GG&E'
             WHEN a.`Internal_Segment__c` = 'AEC' THEN 'AEC'
@@ -78,3 +79,5 @@ WHERE b.SBQQ__Primary__c = true
       --AND a.`StageName` IN ('Closed Won','Closed Won/Online Sale') 
       --AND c.`End_Date__c` >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH) 
       AND (a.`Internal_Segment__c` LIKE 'Education' OR c.SBQQ__ProductFamily__c LIKE 'Education' OR usr.name LIKE 'Israel Macias')
+      --We only look at ACV
+      --AND c.`Start_Date__c`=a.Start_Date__c

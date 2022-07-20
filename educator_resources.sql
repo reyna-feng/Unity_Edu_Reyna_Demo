@@ -1,6 +1,6 @@
---Update Time: 5/18
+--Update Time: 6/14
+CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.educator_resources` AS 
 --Educator Plan Reached
-CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.educator_resources` AS
 WITH educator_reached AS (
 SELECT visit_month,
        educator_ep,educator_community,
@@ -19,6 +19,7 @@ FROM `unity-other-liveplatform-prd.learn.learn_user_content`
 WHERE content_title IN ("unity for educators: a beginner's guide","create with code - teacher training",
       "create with vr for educators","educators live",
       "zoe - vr for education","teaching game design and development")
+      AND start_time IS NOT NULL AND soft_start_time IS NULL
 GROUP BY 1,2,3,4
 ) A
 GROUP BY 1
@@ -34,8 +35,9 @@ SELECT user_id,content_title,tier,content_topic,content_level,start_time,
        IF(NOT started IS NULL, started,0) AS started,
        IF(NOT soft_started IS NULL, soft_started,0) AS soft_started
 FROM `unity-other-liveplatform-prd.learn.learn_user_content`
-WHERE project_title_ = 'getting started with playground: for educators'
-      OR content_title = 'teach hour of code'
+WHERE (project_title_ = 'getting started with playground: for educators'
+      OR content_title = 'teach hour of code')
+      AND start_time IS NOT NULL AND soft_start_time IS NULL
 GROUP BY 1,2,3,4,5,6,7,8
 ) A
 GROUP BY 1
@@ -132,5 +134,3 @@ LEFT JOIN curriculum_download E ON A.visit_month=E.visit_month
 LEFT JOIN live_training F ON A.visit_month=F.visit_month
 LEFT JOIN educator_live G ON A.visit_month=G.visit_month
 LEFT JOIN educator_workshop H ON A.visit_month=H.Month
-
-

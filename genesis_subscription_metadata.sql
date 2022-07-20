@@ -1,6 +1,7 @@
---Update Time: 6/8
+--Update Time: 7/19
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.genesis_subscription_metadata` AS
     select
+        subs.ownerId,subs.ownerType,subs.uuid,
         cast(subs.id as string) as subscription_id
         , subs.createdTime as created_time
         , subs.updatedTime as updated_time

@@ -1,11 +1,13 @@
---Update Time: 5/17--
+--Update Time: 7/11
 CREATE OR REPLACE VIEW `unity-other-learn-prd.reynafeng.table_monitor` AS
 
 SELECT DATE(ulfCreatedTime) AS table_date,
        'unity-it-open-dataplatform-prd.dw_customer_insights.UserSerialActivations' AS table,
        COUNT(DISTINCT hwidUlf) AS datapoints
-FROM `unity-it-open-dataplatform-prd.dw_customer_insights.UserSerialActivations` 
-WHERE serialCategoryName='Edu Subscription Multi-install' AND isTest != true 
+FROM `unity-it-open-dataplatform-prd.dw_customer_insights.UserSerialActivations`
+WHERE TO_BASE64(SHA256(CAST(ownerId AS STRING))) IN (SELECT DISTINCT compliance_key FROM `unity-other-learn-prd.reynafeng.academiclicense`)
+      OR
+      TO_BASE64(SHA256(CAST(userId AS STRING))) IN (SELECT DISTINCT compliance_key FROM `unity-other-learn-prd.reynafeng.academiclicense`)
 GROUP BY 1,2
 
 UNION ALL
@@ -14,7 +16,9 @@ SELECT DATE(ulfCreatedTime) AS table_date,
        'unity-ai-unity-insights-prd.ai_feature_catalog.user_serial_activations' AS table,
        COUNT(DISTINCT hwidUlf) AS datapoints
 FROM `unity-ai-unity-insights-prd.ai_feature_catalog.user_serial_activations`
-WHERE serialCategoryName='Edu Subscription Multi-install' AND isTest != true 
+WHERE TO_BASE64(SHA256(CAST(ownerId AS STRING))) IN (SELECT DISTINCT compliance_key FROM `unity-other-learn-prd.reynafeng.academiclicense`)
+      OR
+      TO_BASE64(SHA256(CAST(userId AS STRING))) IN (SELECT DISTINCT compliance_key FROM `unity-other-learn-prd.reynafeng.academiclicense`)
 GROUP BY 1,2
 
 UNION ALL

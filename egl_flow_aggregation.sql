@@ -1,4 +1,4 @@
---Update Time: 3/14--
+--Update Time: 7/7
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.egl_flow_aggregation` AS
 
 WITH steps AS(
@@ -11,16 +11,16 @@ GROUP BY 1,2
 UNION ALL
 
 SELECT DATE(grant_time) AS day_date,
-       '2. Activate License' AS step,
-       SUM(IF(first_activation_ts IS NOT NULL, 1, 0)) AS user_count
+       '2. Launch Hub' AS step,
+       SUM(IF(first_hub_login IS NOT NULL, 1, 0)) AS user_count
 FROM `unity-other-learn-prd.reynafeng.egl_flow`
 GROUP BY 1,2
 
 UNION ALL
 
 SELECT DATE(grant_time) AS day_date,
-       '3. Launch Hub' AS step,
-       SUM(IF(first_hub_login IS NOT NULL, 1, 0)) AS user_count
+       '3. Activate License' AS step,
+       SUM(IF(first_activation_ts IS NOT NULL, 1, 0)) AS user_count
 FROM `unity-other-learn-prd.reynafeng.egl_flow`
 GROUP BY 1,2
 

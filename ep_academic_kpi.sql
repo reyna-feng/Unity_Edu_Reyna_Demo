@@ -1,4 +1,4 @@
---Update Time: 5/23
+--Update Time: 7/17
 CREATE OR REPLACE TABLE `unity-other-learn-prd.reynafeng.ep_academic_kpi` AS 
 
 WITH installs AS(
@@ -36,7 +36,8 @@ SELECT compliance_key,serialNumber,
        MIN(DATE_TRUNC(DATE(licnese_grant_time), month)) OVER(PARTITION BY compliance_key,serialNumber) AS start_month,
        MAX(DATE_TRUNC(DATE(licnese_expiration_time), month)) OVER(PARTITION BY compliance_key,serialNumber) AS end_month
 FROM `unity-other-learn-prd.reynafeng.educator_activation`
-WHERE activation_status=True) AS A
+--WHERE activation_status=True
+) AS A
 GROUP BY 1
 ORDER BY 1
 ),
@@ -48,7 +49,8 @@ SELECT compliance_key,serialNumber,
        MIN(DATE_TRUNC(DATE(licnese_grant_time), month)) OVER(PARTITION BY compliance_key,serialNumber) AS start_month,
        MAX(DATE_TRUNC(DATE(licnese_expiration_time), month)) OVER(PARTITION BY compliance_key,serialNumber) AS end_month
 FROM `unity-other-learn-prd.reynafeng.educator_activation`
-WHERE activation_status=True) AS A
+--WHERE activation_status=True
+) AS A
 GROUP BY 1
 ORDER BY 1
 ),
